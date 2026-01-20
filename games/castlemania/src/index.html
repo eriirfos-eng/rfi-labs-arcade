@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Protokoll: Ästhetische Ausbeutung v4.0 (RTS)</title>
+    <link rel="stylesheet" href="css/style.css">
+    <style>
+        .stat-value.stone { color: #bdbdbd; }
+        .build-btn { min-width: 60px; padding: 6px; }
+        .build-btn svg { width: 24px; height: 24px; fill: currentColor; margin-bottom: 4px; }
+        
+        /* Description Box */
+        #desc-panel {
+            position: fixed; top: 0; left: 0;
+            background: rgba(22, 27, 34, 0.95);
+            backdrop-filter: blur(16px);
+            padding: 12px 16px; 
+            border-radius: 12px; 
+            border: 1px solid rgba(255,255,255,0.15);
+            color: #e6edf3; font-size: 13px; text-align: left; pointer-events: none;
+            opacity: 0; transition: opacity 0.1s; min-width: 200px; max-width: 250px;
+            z-index: 3000; 
+            box-shadow: 0 8px 32px rgba(0,0,0,0.6);
+        }
+        #desc-title { color: #fff; font-weight: 800; margin-bottom: 6px; display: block; font-size: 15px; letter-spacing: 0.5px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 4px; }
+        #desc-text { color: #8b949e; line-height: 1.5; font-size: 12px; }
+        
+        /* SVG Icons in HUD */
+        .res-icon { width: 16px; height: 16px; margin-right: 8px; vertical-align: text-bottom; fill: currentColor; }
+
+        /* Colorful Categories */
+        .btn-eco, #menu-eco .build-btn { border-color: rgba(46, 160, 67, 0.4); color: #7ee787; }
+        .btn-eco:hover, #menu-eco .build-btn:hover { background: rgba(46, 160, 67, 0.2); border-color: #2ea043; box-shadow: 0 0 15px rgba(46, 160, 67, 0.3); transform: translateY(-3px); }
+        #menu-eco { border-color: #2ea043; background: rgba(10, 30, 15, 0.95); }
+        
+        .btn-city, #menu-city .build-btn { border-color: rgba(31, 111, 235, 0.4); color: #58a6ff; }
+        .btn-city:hover, #menu-city .build-btn:hover { background: rgba(31, 111, 235, 0.2); border-color: #1f6feb; box-shadow: 0 0 15px rgba(31, 111, 235, 0.3); transform: translateY(-3px); }
+        #menu-city { border-color: #1f6feb; background: rgba(10, 20, 40, 0.95); }
+
+        .btn-deco, #menu-deco .build-btn { border-color: rgba(219, 97, 162, 0.4); color: #ff7b72; }
+        .btn-deco:hover, #menu-deco .build-btn:hover { background: rgba(219, 97, 162, 0.2); border-color: #db61a2; box-shadow: 0 0 15px rgba(219, 97, 162, 0.3); transform: translateY(-3px); }
+        #menu-deco { border-color: #db61a2; background: rgba(40, 10, 20, 0.95); }
+    </style>
+</head>
+<body class="grab">
+
+<svg style="display: none;">
+    <defs>
+        <symbol id="icon-gold" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></symbol>
+        <symbol id="icon-wood" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2zm0 3.5L18.5 20h-13L12 5.5z"/></symbol>
+        <symbol id="icon-stone" viewBox="0 0 24 24"><path d="M4 12l8-8 8 8-8 8-8-8z"/></symbol>
+        <symbol id="icon-pop" viewBox="0 0 24 24"><path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/></symbol>
+        
+        <symbol id="icon-select" viewBox="0 0 24 24"><path d="M7 2v11h3v9l7-12h-4l4-8z"/></symbol>
+        <symbol id="icon-house" viewBox="0 0 24 24"><path d="M10 20v-6h4v6h5v-8h3L12 3 2 12h3v8z"/></symbol>
+        <symbol id="icon-mill" viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2z"/><circle cx="12" cy="14" r="4"/></symbol>
+        <symbol id="icon-tower" viewBox="0 0 24 24"><path d="M6 22h12V10L12 2 6 10v12z"/></symbol>
+        <symbol id="icon-well" viewBox="0 0 24 24"><path d="M12 2c-5.33 4-8 6.67-8 10a8 8 0 1 0 16 0c0-3.33-2.67-6-8-10z"/></symbol>
+        <symbol id="icon-wall" viewBox="0 0 24 24"><path d="M4 4h16v16H4V4zm2 2v4h4V6H6zm6 0v4h4V6h-4zm-6 6v4h4v-4H6zm6 0v4h4v-4h-4z"/></symbol>
+        <symbol id="icon-road" viewBox="0 0 24 24"><path d="M18 2h-4L4 22h4l10-20zm-6 0h-4L4 12h4l4-10z"/></symbol>
+        <symbol id="icon-bridge" viewBox="0 0 24 24"><path d="M4 20h16v-4H4v4zm0-6h16v-4H4v4zm0-6h16V4H4v4z"/></symbol>
+        <symbol id="icon-delete" viewBox="0 0 24 24"><path d="M6 19c0 1.1.9 2 2 2h8c1.1 0 2-.9 2-2V7H6v12zM19 4h-3.5l-1-1h-5l-1 1H5v2h14V4z"/></symbol>
+    </defs>
+</svg>
+
+<div id="loader">
+    <div>INITIALISIERE ENGINE...</div>
+    <div id="loader-sub">Generiere Welt & Sektoren...</div>
+</div>
+
+<div id="ui-layer">
+    <div id="clock-display">TAG 1 - 12:00</div>
+    <div id="resources">
+        <div class="stat-box">
+            <span class="stat-label">Gold</span>
+            <span class="stat-value gold"><svg class="res-icon"><use href="#icon-gold"/></svg><span id="res-gold">500</span></span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">Holz</span>
+            <span class="stat-value wood"><svg class="res-icon"><use href="#icon-wood"/></svg><span id="res-wood">200</span></span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">Stein</span>
+            <span class="stat-value stone"><svg class="res-icon"><use href="#icon-stone"/></svg><span id="res-stone">50</span></span>
+        </div>
+        <div class="stat-box">
+            <span class="stat-label">Bürger</span>
+            <span class="stat-value"><svg class="res-icon"><use href="#icon-pop"/></svg><span id="res-pop">1 / 5</span></span>
+        </div>
+    </div>
+
+    <div id="desc-panel">
+        <span id="desc-title">Titel</span>
+        <span id="desc-text">Beschreibung...</span>
+    </div>
+
+    <div id="controls-container">
+        <div id="controls">
+            <button class="build-btn active" onclick="setMode(null)">
+                <svg><use href="#icon-select"/></svg>
+                <span class="btn-title">Wählen</span>
+            </button>
+            
+            <!-- Economy Menu -->
+            <div class="menu-group">
+                <button class="build-btn btn-eco" onclick="toggleMenu('menu-eco')">
+                    <svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2z" fill="currentColor"/></svg>
+                    <span class="btn-title">Wirtsch.</span>
+                </button>
+                <div id="menu-eco" class="sub-menu">
+                    <button class="build-btn" onmouseenter="showDesc(event, 'Sägewerk', 'Holz: +5/5s.<br>Kosten: 100G 100H')" onmouseleave="hideDesc()" onclick="setMode('mill')">
+                        <svg><use href="#icon-mill"/></svg><span class="btn-title">Säge</span>
+                    </button>
+                    <button class="build-btn" onmouseenter="showDesc(event, 'Steinbruch', 'Stein: +3/5s.<br>Kosten: 150H 50G')" onmouseleave="hideDesc()" onclick="setMode('quarry')">
+                        <svg viewBox="0 0 24 24"><path d="M4 20h16v-4H4v4zm0-6h16v-4H4v4z" fill="currentColor"/></svg><span class="btn-title">Stein</span>
+                    </button>
+                    <button class="build-btn" onmouseenter="showDesc(event, 'Goldschmied', 'Gold: +5/5s.<br>Kosten: 200H 100S')" onmouseleave="hideDesc()" onclick="setMode('goldsmith')">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8" fill="currentColor"/></svg><span class="btn-title">Gold</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- City Menu -->
+            <div class="menu-group">
+                <button class="build-btn btn-city" onclick="toggleMenu('menu-city')">
+                    <svg><use href="#icon-house"/></svg>
+                    <span class="btn-title">Stadt</span>
+                </button>
+                <div id="menu-city" class="sub-menu">
+                    <button class="build-btn" onmouseenter="showDesc(event, 'Burg', 'Zentrale.<br>Kosten: 300G 150H')" onmouseleave="hideDesc()" onclick="setMode('castle')">
+                        <svg viewBox="0 0 24 24"><path d="M2 20v-8h2v8h2v-8h2v8h2v-8h2v8h2v-8h2v8h2v-8h2v8h2V2L2 2v6h2V2h2v6h2V2h2v6h2V2h2v6h2V2h2v6h2V2z" fill="currentColor"/></svg><span class="btn-title">Burg</span>
+                    </button>
+                    <button class="build-btn" onmouseenter="showDesc(event, 'Hütte', 'Wohnraum.<br>Kosten: 100G 50H')" onmouseleave="hideDesc()" onclick="setMode('house')">
+                        <svg><use href="#icon-house"/></svg><span class="btn-title">Hütte</span>
+                    </button>
+                    <button class="build-btn" onmouseenter="showDesc(event, 'Turm', 'Sicht.<br>Kosten: 200G 100S')" onmouseleave="hideDesc()" onclick="setMode('tower')">
+                        <svg><use href="#icon-tower"/></svg><span class="btn-title">Turm</span>
+                    </button>
+                    <button class="build-btn" onmouseenter="showDesc(event, 'Mauer', 'Schutz.<br>Kosten: 10G 5S')" onmouseleave="hideDesc()" onclick="setMode('wall')">
+                        <svg><use href="#icon-wall"/></svg><span class="btn-title">Mauer</span>
+                    </button>
+                    <button class="build-btn" onmouseenter="showDesc(event, 'Weg', 'Straße.<br>Kosten: 10S')" onmouseleave="hideDesc()" onclick="setMode('road')">
+                        <svg><use href="#icon-road"/></svg><span class="btn-title">Weg</span>
+                    </button>
+                    <button class="build-btn" onmouseenter="showDesc(event, 'Brücke', 'Wasserweg.<br>Kosten: 50H')" onmouseleave="hideDesc()" onclick="setMode('bridge')">
+                        <svg><use href="#icon-bridge"/></svg><span class="btn-title">Brücke</span>
+                    </button>
+                </div>
+            </div>
+
+            <!-- Decor Menu -->
+            <div class="menu-group">
+                <button class="build-btn btn-deco" onclick="toggleMenu('menu-deco')">
+                    <svg><use href="#icon-well"/></svg>
+                    <span class="btn-title">Deko</span>
+                </button>
+                <div id="menu-deco" class="sub-menu">
+                    <button class="build-btn" onmouseenter="showDesc(event, 'Brunnen', 'Kosten: 150G')" onmouseleave="hideDesc()" onclick="setMode('well')">
+                        <svg><use href="#icon-well"/></svg><span class="btn-title">Brunnen</span>
+                    </button>
+                    <button class="build-btn" onmouseenter="showDesc(event, 'Fackel', 'Licht.<br>Kosten: 15H')" onmouseleave="hideDesc()" onclick="setMode('torch')">
+                        <svg viewBox="0 0 24 24"><path d="M12 2C8 2 8 6 8 6s-2 2-2 6c0 3 3 5 5 5h2c2 0 5-2 5-5 0-4-2-6-2-6s0-4-4-4z" fill="currentColor"/></svg><span class="btn-title">Fackel</span>
+                    </button>
+                    <button class="build-btn" onmouseenter="showDesc(event, 'Lampe', 'Licht.<br>Kosten: 20G 10H')" onmouseleave="hideDesc()" onclick="setMode('lamp')">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="6" r="4" fill="currentColor"/><rect x="11" y="10" width="2" height="14" fill="currentColor"/></svg><span class="btn-title">Lampe</span>
+                    </button>
+                    <button class="build-btn" onmouseenter="showDesc(event, 'Bank', 'Pause.<br>Kosten: 10H')" onmouseleave="hideDesc()" onclick="setMode('bench')">
+                        <svg viewBox="0 0 24 24"><rect x="2" y="14" width="20" height="4" fill="currentColor"/><rect x="4" y="18" width="2" height="4" fill="currentColor"/><rect x="18" y="18" width="2" height="4" fill="currentColor"/></svg><span class="btn-title">Bank</span>
+                    </button>
+                    <button class="build-btn" onmouseenter="showDesc(event, 'Blumen', 'Schön.<br>Kosten: 5G')" onmouseleave="hideDesc()" onclick="setMode('flowers')">
+                        <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6" fill="currentColor"/></svg><span class="btn-title">Blumen</span>
+                    </button>
+                    <button class="build-btn" onmouseenter="showDesc(event, 'Statue', 'Prunk.<br>Kosten: 500G')" onmouseleave="hideDesc()" onclick="setMode('statue')">
+                        <svg viewBox="0 0 24 24"><path d="M12 2L2 22h20L12 2z" fill="currentColor"/></svg><span class="btn-title">Statue</span>
+                    </button>
+                    <button class="build-btn" onmouseenter="showDesc(event, 'Zaun', 'Grenze.<br>Kosten: 5H')" onmouseleave="hideDesc()" onclick="setMode('fence')">
+                        <svg viewBox="0 0 24 24"><path d="M2 14h20v4H2z" fill="currentColor"/></svg><span class="btn-title">Zaun</span>
+                    </button>
+                </div>
+            </div>
+
+            <button class="build-btn" style="border-color: #ff5555" onmouseenter="showDesc(event, 'Abreißen', 'Entfernen.')" onmouseleave="hideDesc()" onclick="setMode('delete')">
+                <svg><use href="#icon-delete"/></svg>
+                <span class="btn-title">Abriss</span>
+            </button>
+        </div>
+    </div>
+</div>
+
+<div id="msg-log"></div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script src="js/config.js"></script>
+<script src="js/game.js"></script>
+<script>
+    function showDesc(e, title, text) {
+        const el = document.getElementById('desc-panel');
+        document.getElementById('desc-title').innerHTML = title;
+        document.getElementById('desc-text').innerHTML = text;
+        
+        // Position next to the element
+        const rect = e.currentTarget.getBoundingClientRect();
+        el.style.left = `${rect.right + 10}px`;
+        el.style.top = `${rect.top}px`;
+        // Ensure it doesn't go off screen bottom
+        const panelRect = el.getBoundingClientRect();
+        if (panelRect.bottom > window.innerHeight) {
+            el.style.top = `${window.innerHeight - panelRect.height - 10}px`;
+        }
+        
+        el.style.opacity = 1;
+    }
+    function hideDesc() {
+        document.getElementById('desc-panel').style.opacity = 0;
+    }
+    function toggleMenu(id) {
+        document.querySelectorAll('.sub-menu').forEach(m => {
+            if(m.id !== id) m.classList.remove('open');
+        });
+        const el = document.getElementById(id);
+        if(el) el.classList.toggle('open');
+    }
+    // Close menus when clicking outside
+    document.addEventListener('click', (e) => {
+        if (!e.target.closest('.menu-group')) {
+            document.querySelectorAll('.sub-menu').forEach(m => m.classList.remove('open'));
+        }
+    });
+</script>
+
+</body>
+</html>
